@@ -1,7 +1,44 @@
 body {
     color: blue;
   }
-  
+.left-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 265PX; 
+  height: 100%;
+  background-image: url('./images/leftBar.gif'); 
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: left;
+  z-index: -1; 
+}
+
+
+.right-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 255PX; 
+  background-image: url('./images/leftBar.gif'); 
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: right;
+  z-index: -1; 
+}
+.trail {
+  pointer-events: none; /* Ignore mouse events */
+  position: absolute;
+  width: 20px; /* Trail size */
+  height: 20px; /* Trail size */
+  border-radius: 50%; /* Make it circular */
+  background: rgb(255, 16, 191); /* Semi-transparent white */
+  transition: opacity 0.2s, transform 0.2s; /* Smooth transition for fading out and scaling */
+  will-change: opacity, transform; /* Optimize animations */
+}
+
   h1 {
     color: green;
   }
@@ -40,3 +77,70 @@ body {
     width: 30rem;
     height: 50rem;
   }
+
+  /* for register beautify */
+/* Center the .dapp-admin card and add animations */
+.dapp-admin {
+  display: flex;
+  justify-content: center; /* Horizontally center the card */
+  width: 100%; /* Ensure the container takes full width */
+}
+
+.dapp-admin .card {
+  margin-top: 20px; /* Add some space on the top */
+  width: 80%; /* Adjust card width as per your design requirement */
+  max-width: 600px; /* Maximum width of the card */
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* Enhanced shadow for depth */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transitions for hover effects */
+}
+
+/* Card hover effect */
+.dapp-admin .card:hover {
+  transform: translateY(-5px); /* Slightly raise the card */
+  box-shadow: 0 15px 30px rgba(0,0,0,0.2); /* Increase shadow for lifted effect */
+}
+
+/* Input focus effect */
+.dapp-admin input {
+  outline: none; /* Remove default focus outline */
+  transition: border-color 0.3s ease; /* Smooth transition for border color */
+}
+
+.dapp-admin input:focus {
+  border-color: #64B5F6; /* Highlight input on focus */
+  animation: pulseAnimation 1s infinite; /* Add a pulse effect to focus */
+}
+
+/* Hover effect for buttons */
+.dapp-admin .btn-secondary, .dapp-admin .btn-primary {
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Transition for background and transform */
+}
+
+.dapp-admin .btn-secondary:hover, .dapp-admin .btn-primary:hover {
+  background-color: #546E7A; /* Darken button background on hover */
+  transform: translateY(-2px); /* Slightly raise the button */
+}
+
+/* Animation for input focus */
+@keyframes pulseAnimation {
+  0% {
+      box-shadow: 0 0 0 0 rgba(100, 181, 246, 0.5);
+  }
+  70% {
+      box-shadow: 0 0 0 10px rgba(100, 181, 246, 0);
+  }
+  100% {
+      box-shadow: 0 0 0 0 rgba(100, 181, 246, 0);
+  }
+}
+
+/* Enhancements for input text styling */
+.dapp-admin input[type="text"], .dapp-admin input[type="password"], .dapp-admin input[type="file"] {
+  font-size: 16px; /* Increase font size for better readability */
+  color: #90A4AE; /* Input text color */
+  background-color: #546E7A; /* Input background color */
+}
+
+.dapp-admin input[type="text"]:hover, .dapp-admin input[type="password"]:hover, .dapp-admin input[type="file"]:hover {
+  background-color: #455A64; /* Darken input background on hover */
+}

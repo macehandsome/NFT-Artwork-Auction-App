@@ -274,3 +274,116 @@ const dApp = {
 };
 
 dApp.main();
+
+// for mouse Animation
+document.addEventListener('DOMContentLoaded', function() {
+  const maxTrails = 15; // Maximum number of trails on screen
+  const trailLife = 200; // Lifetime of each trail in milliseconds
+  let trails = []; // Store active trail elements
+  let stationaryTrail; // Stationary circle under the cursor
+
+  document.body.addEventListener('mousemove', function(e) {
+      if (!stationaryTrail) {
+          // Create stationary circle if it doesn't exist
+          stationaryTrail = createTrail(e.pageX, e.pageY);
+          stationaryTrail.style.opacity = 1; // Ensure visibility
+          document.body.appendChild(stationaryTrail);
+      } else {
+          // Update stationary circle's position
+          stationaryTrail.style.left = e.pageX + 'px';
+          stationaryTrail.style.top = e.pageY + 'px';
+      }
+
+      // Create moving trail
+      const trail = createTrail(e.pageX, e.pageY);
+      document.body.appendChild(trail);
+      trails.push(trail);
+      
+      // Limit number of trails on screen
+      while (trails.length > maxTrails) {
+          const oldTrail = trails.shift();
+          // Prevent removal of stationary circle
+          if (oldTrail !== stationaryTrail) {
+              oldTrail.parentElement.removeChild(oldTrail);
+          }
+      }
+
+      // Animate moving trail
+      animateTrail(trail, e.pageX, e.pageY);
+  });
+
+  function createTrail(x, y) {
+      const trail = document.createElement('div');
+      trail.className = 'trail'; // Assign class for styling
+      trail.style.left = x + 'px';
+      trail.style.top = y + 'px';
+
+      trail.style.marginLeft = '-10px'; // Half of the width
+      trail.style.marginTop = '-10px'; // Half of the height
+      return trail;
+  }
+
+  function animateTrail(trail, x, y) {
+      let startTime = performance.now();
+
+      function animation(time) {
+          if (trail === stationaryTrail) return; // Skip animation for stationary circle
+
+          // const elapsedTime = time - startTime;
+          // const progress = elapsedTime / trailLife;
+          // const opacity = Math.max(1 - progress, 0); // Fade effect
+          // // Color transition from white to blue
+          // const colorProgress = Math.min(progress * 2, 1); // Complete change halfway through lifetime
+          // trail.style.backgroundColor = `rgba(${255 * (1 - colorProgress)}, ${255 * (1 - colorProgress)}, 255, ${opacity})`;
+          const elapsedTime = time - startTime;
+          const progress = elapsedTime / trailLife;
+          const opacity = Math.max(1 - progress, 0);
+          const colorProgress = Math.min(progress * 2, 1); 
+
+          trail.style.opacity = opacity;
+          trail.style.backgroundColor = `rgba(${255 * (1 - colorProgress)}, ${255 * colorProgress}, 255, ${opacity})`;
+          trail.style.opacity = opacity;
+
+          if (opacity > 0) {
+              requestAnimationFrame(animation);
+          } else {
+              // Remove trail after animation, except stationary circle
+              if (trail !== stationaryTrail) {
+                  trail.parentElement.removeChild(trail);
+              }
+          }
+      }
+
+      requestAnimationFrame(animation);
+  }
+
+  const buttons = document.querySelectorAll('.btn');
+
+  // Function to enlarge the stationary circle
+  function enlargeCircle() {
+      if (stationaryTrail) {
+          stationaryTrail.style.width = '30px'; // Double the size or adjust as needed
+          stationaryTrail.style.height = '30px';
+          stationaryTrail.style.marginLeft = '-15px'; // Adjust to keep the circle centered
+          stationaryTrail.style.marginTop = '-15px';
+          stationaryTrail.style.backgroundColor = '#FF4081'; // Change color
+          stationaryTrail.style.opacity = '0.5'; // Change to semi-transparent
+      }
+  }
+
+  // Function to reset the circle's size
+  function resetCircleSize() {
+      if (stationaryTrail) {
+          stationaryTrail.style.width = '20px'; // Original size
+          stationaryTrail.style.height = '20px';
+          stationaryTrail.style.marginLeft = '-10px'; // Original margin adjustment
+          stationaryTrail.style.marginTop = '-10px';
+      }
+  }
+
+  // Add event listeners to buttons
+  buttons.forEach(button => {
+      button.addEventListener('mouseover', enlargeCircle);
+      button.addEventListener('mouseout', resetCircleSize);
+  });
+});
