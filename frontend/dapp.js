@@ -1,6 +1,6 @@
 // @TODO: Update this address to match your deployed ArtworkMarket contract!
 // const contractAddress = "0x7a377fAd8c7dB341e662c93A79d0B0319DD3DaE8";
-const contractAddress = "0x4de88B16d7AD22ef8da508d94aaA9E6236D190eA";
+const contractAddress = "0x2e4DFc8B9C3b34dfF4Ef16da3A3b45F344c1177E";
 
 
 const dApp = {
@@ -68,8 +68,13 @@ const dApp = {
         let highestBidder = `: ${token.owner}`;
         let highestBid = `  ${token.highestBid}`;
         let auctionStatus = `   ${token.auctionEnded}`;
+        let startTime = new Date(token.startTime * 1000).toString();
+        let expiryTime = new Date(token.expiryTime * 1000).toString();
         
         
+        if (hour < 18) {
+          greeting = "Good day";
+        }
          
         let bid = `<a token-id="${token.tokenId}" href="#" class="btn btn-info" onclick="dApp.bid(event);">Bid</a>`;
         let owner = `Final Artwork Owner: ${token.owner}`;
@@ -187,6 +192,25 @@ const dApp = {
     const pinata_api_key = $("#dapp-pinata-api-key").val();
     const pinata_secret_api_key = $("#dapp-pinata-secret-api-key").val();
 
+    const raw_expiry_date = $("#dapp-expiry-date").val();
+    const raw_expiry_time = $("#dapp-expiry-time").val();
+
+    let expiry_timestamp = 9876543210;
+
+    console.log("raw_expiry_date", raw_expiry_date, typeof(raw_expiry_date));
+    console.log("raw_expiry_time", raw_expiry_time, typeof(raw_expiry_time));
+    try{
+      let date_list = raw_expiry_date.split("-");
+      let time_list = raw_expiry_time.split(":");
+      let expiry_datetime = new Date(date_list[0], date_list[1] - 1, date_list[2], time_list[0], time_list[1], 0);
+      expiry_timestamp = expiry_datetime.getTime() / 1000;
+    }
+    catch(err){
+      console.log("Error parsing expiry date and time", err);
+      console.log("raw_expiry_date 2", raw_expiry_date, typeof(raw_expiry_date));
+      console.log("raw_expiry_time 2", raw_expiry_time, typeof(raw_expiry_time));
+    }
+
     if (!pinata_api_key || !pinata_secret_api_key || !name || !image) {
       M.toast({ html: "Please fill out then entire form!" });
       return;
@@ -237,7 +261,11 @@ const dApp = {
       M.toast({ html: `Success. Reference URI located at ${reference_uri}.` });
       M.toast({ html: "Sending to blockchain..." });
 
-      await this.artContract.methods.registerArt(reference_uri).send({from: this.accounts[0]}).on("receipt", async (receipt) => {
+      console.log("expiry_timestamp", expiry_timestamp, typeof(expiry_timestamp));
+      console.log("reference_uri",reference_uri, typeof(reference_uri));
+      console.log("this.accounts[0]",this.accounts[0], typeof(this.accounts[0]));
+
+      await this.artContract.methods.registerArt(reference_uri, expiry_timestamp).send({from: this.accounts[0]}).on("receipt", async (receipt) => {
         M.toast({ html: "Transaction Mined! Refreshing UI..." });
         $("#dapp-register-name").val("");
         $("#dapp-register-image").val("");
@@ -245,6 +273,7 @@ const dApp = {
       });
 
     } catch (e) {
+      console.log("error", e);
       alert("ERROR:", JSON.stringify(e));
     }
   },
