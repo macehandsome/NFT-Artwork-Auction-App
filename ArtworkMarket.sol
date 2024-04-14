@@ -43,4 +43,13 @@ contract ArtworkMarket is ERC721Full, Ownable {
         ArtworkAuction auction = auctions[token_id];
         auction.bid.value(msg.value)(msg.sender);
     }
+    function getStartTime(uint token_id) public view artRegistered(token_id) returns(uint) {
+        ArtworkAuction auction = auctions[token_id];
+        return auction.startTime();
+    }
+    function getExpiryTime(uint token_id) public view artRegistered(token_id) returns(uint) {
+        ArtworkAuction auction = auctions[token_id];
+        return auction.expiryTime();
+    }
+
 }

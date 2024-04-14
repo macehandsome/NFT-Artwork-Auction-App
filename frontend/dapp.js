@@ -1,6 +1,6 @@
 // @TODO: Update this address to match your deployed ArtworkMarket contract!
 // const contractAddress = "0x7a377fAd8c7dB341e662c93A79d0B0319DD3DaE8";
-const contractAddress = "0x2e4DFc8B9C3b34dfF4Ef16da3A3b45F344c1177E";
+const contractAddress = "0x75F0ab92dD3023CF6B989921ed5b774E7a3d6184";
 
 
 const dApp = {
@@ -41,9 +41,12 @@ const dApp = {
             { defaultAccount: this.accounts[0] }
           ),
           owner: await this.artContract.methods.ownerOf(i).call(),
+          startTime: await this.artContract.methods.getStartTime(i).call(),
+          expiryTime: await this.artContract.methods.getExpiryTime(i).call(),
           ...token_json
         });
       } catch (e) {
+        console.log("ERROR 2", e);
         console.log(JSON.stringify(e));
       }
     }
@@ -60,6 +63,7 @@ const dApp = {
     console.log("updating UI");
     // refresh variables
     await this.collectVars();
+    console.log("haha");
  
     $("#dapp-tokens").html("");
     this.tokens.forEach((token) => {
@@ -68,13 +72,19 @@ const dApp = {
         let highestBidder = `: ${token.owner}`;
         let highestBid = `  ${token.highestBid}`;
         let auctionStatus = `   ${token.auctionEnded}`;
-        let startTime = new Date(token.startTime * 1000).toString();
-        let expiryTime = new Date(token.expiryTime * 1000).toString();
+        console.log("token", token);
+        console.log(token.startTime, typeof(token.startTime));
+        console.log(token.expiryTime, typeof(token.expiryTime));
+        let startTimeStr = new Date(Number(token.startTime) * 1000).toString();
+        let expiryTimeStr = new Date(Number(token.expiryTime) * 1000).toString();
+        console.log(startTimeStr, typeof(startTimeStr));
+        console.log(expiryTimeStr, typeof(expiryTimeStr));
         
         
-        if (hour < 18) {
-          greeting = "Good day";
-        }
+        // if (hour < 18) {
+        //   greeting = "Good day";
+        // }
+        console.log("heihei");
          
         let bid = `<a token-id="${token.tokenId}" href="#" class="btn btn-info" onclick="dApp.bid(event);">Bid</a>`;
         let owner = `Final Artwork Owner: ${token.owner}`;
@@ -97,6 +107,8 @@ const dApp = {
                   ${token.pendingReturn > 0 ? withdraw : ''}
                   ${this.isAdmin && !token.auctionEnded ? endAuction : ''} <br>
                   ${token.pendingReturn > 0 ? pendingWithdraw : ''}
+                <p> Auction Start Time: ${startTimeStr} </p>
+                <p> Auction Expiry Time: ${expiryTimeStr} </p>
                 </div>
               </div>
             </div>`
