@@ -1,8 +1,8 @@
 pragma solidity >=0.4.22 <0.6.0;
 contract ArtworkAuction {
     address deployer;
-    uint256 public startTime;
-    uint256 public expiryTime;
+    uint public startTime;
+    uint public expiryTime;
     address payable public beneficiary;
     // Current state of the auction.
     address public highestBidder;
@@ -24,15 +24,16 @@ contract ArtworkAuction {
     /// beneficiary address `_beneficiary`.
     constructor(
         address payable _beneficiary,
-        uint256 _expiryTime
+        uint _startTime,
+        uint _expiryTime
     ) public {
         deployer = msg.sender; // set as the ArtworkMarket
         beneficiary = _beneficiary;
-        startTime = block.timestamp;
+        startTime = _startTime;
         expiryTime = _expiryTime;
     }
 
-    function getElapsedTime() public view returns (uint256) {
+    function getElapsedTime() public view returns (uint) {
         return (block.timestamp - startTime);
     }
     /// Bid on the auction with the value sent
