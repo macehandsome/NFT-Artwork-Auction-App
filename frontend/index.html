@@ -67,12 +67,20 @@
             <legend class="btn btn-secondary float-left">Register new Artwork</legend>
         </div>
           <span class="card-title"><input id="dapp-register-name" placeholder="ArtWork name..." /></span>
-          <p>Image: <input id="dapp-copyright-image" type="file" /></p>
+          <p style="text-align:left">Image: <input id="dapp-copyright-image" type="file" /></p>
 
           <p><input id="dapp-pinata-api-key" placeholder="Pinata API Key"/></p>
           <p><input id="dapp-pinata-secret-api-key" placeholder="Pinata Secret API Key" type="password" /></p>
-                     <br/>
-                     <a class="btn btn-primary" id="dapp-register" href="#" onclick="dApp.registerArt()">Register Artwork</a>
+          <p style="text-align:left">Start Time (DO NOT update the fields if you want your artwork LIVE immediately)</p>
+          <p><input id="dapp-start-date"  type="date"/>
+            <input id="dapp-start-time"  type="time"/>
+          </p>         
+          <p style="text-align:left">Expiry Time (Optional)</p>
+          <p><input id="dapp-expiry-date"  type="date"/>
+            <input id="dapp-expiry-time"  type="time"/>
+          </p>
+          <br/>
+          <a class="btn btn-primary" id="dapp-register" href="#" onclick="dApp.registerArt()">Register Artwork</a>
         </div>
         
         <div  >

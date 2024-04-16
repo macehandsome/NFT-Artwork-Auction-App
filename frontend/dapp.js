@@ -1,6 +1,6 @@
 // @TODO: Update this address to match your deployed ArtworkMarket contract!
 // const contractAddress = "0x7a377fAd8c7dB341e662c93A79d0B0319DD3DaE8";
-const contractAddress = "0x171C8e59Dd9D7EfD54f382FAA4f24D7253471ECD";
+const contractAddress = "0x68c25B78b3b822Ca63A046E5f6Daf4c0C86cF6F8";
 
 
 const dApp = {
@@ -41,9 +41,12 @@ const dApp = {
             { defaultAccount: this.accounts[0] }
           ),
           owner: await this.artContract.methods.ownerOf(i).call(),
+          startTime: await this.artContract.methods.getStartTime(i).call(),
+          expiryTime: await this.artContract.methods.getExpiryTime(i).call(),
           ...token_json
         });
       } catch (e) {
+        console.log("ERROR 2", e);
         console.log(JSON.stringify(e));
       }
     }
@@ -60,6 +63,9 @@ const dApp = {
     console.log("updating UI");
     // refresh variables
     await this.collectVars();
+    console.log("Collect Vars Finished");
+    let currentTimestamp = Math.floor(Date.now() / 1000);
+    console.log("currentTimestamp", currentTimestamp, typeof(currentTimestamp));
  
     $("#dapp-tokens").html("");
     this.tokens.forEach((token) => {
@@ -68,15 +74,38 @@ const dApp = {
         let highestBidder = `: ${token.owner}`;
         let highestBid = `  ${token.highestBid}`;
         let auctionStatus = `   ${token.auctionEnded}`;
+        console.log("token", token);
+        console.log(token.startTime, typeof(token.startTime));
+        console.log(token.expiryTime, typeof(token.expiryTime));
+        let startTimeStr = new Date(Number(token.startTime) * 1000).toString();
+        let expiryTimeStr = new Date(Number(token.expiryTime) * 1000).toString();
+        console.log(startTimeStr, typeof(startTimeStr));
+        console.log(expiryTimeStr, typeof(expiryTimeStr));
         
         
+        // if (hour < 18) {
+        //   greeting = "Good day";
+        // }
+
+        let isAuctionStart = currentTimestamp >= token.startTime;
+        let isAuctionExpired = currentTimestamp >= token.expiryTime;
+
+        if (isAuctionExpired) {
+          console.log("Auction is expired");
+          this.endAuction({target: { "token-id": token.tokenId }});
+        }
+
+        let isAuctionLive = isAuctionStart && !isAuctionExpired;
+
+        let bidInput = `<input type="number" min="${token.highestBid + 1}" name="dapp-wei" value="${token.highestBid + 1}" ${token.auctionEnded || !isAuctionLive ? 'disabled' : ''}>`
          
-        let bid = `<a token-id="${token.tokenId}" href="#" class="btn btn-info" onclick="dApp.bid(event);">Bid</a>`;
+        let bid = `<a token-id="${token.tokenId}" href="#" class="btn btn-info" onclick="dApp.bid(event);" ${token.auctionEnded || !isAuctionLive ? 'disabled' : ''}>Bid</a>`;
         let owner = `Final Artwork Owner: ${token.owner}`;
         let URL = `Final Artwork Owner: ${token.URL}`;
         /* console.log('owner', owner) */
-        let withdraw = `<a token-id="${token.tokenId}" href="#" class="btn btn-info" onclick="dApp.withdraw(event)">Withdraw</a>`
-        let pendingWithdraw = `Balance: ${token.pendingReturn} wei`;
+        let withdraw = `<a token-id="${token.tokenId}" href="#" class="btn btn-info" onclick="dApp.withdraw(event)" ${token.auctionEnded || !isAuctionLive ? 'disabled' : ''}>Withdraw</a>`
+        let pendingWithdraw = `<p align="left">Balance: ${token.pendingReturn} wei</p>`;
+        let expiryTimeHTML = `<p align="left"> Auction Expiry Time: ${expiryTimeStr} </p>`;
 
           $("#dapp-tokens").append(
             `<div class="col m6">
@@ -86,12 +115,15 @@ const dApp = {
                   <span id="dapp-name" class="card-title">${token.name}</span>
                 </div>
                 <div class="card-action">
-                <h6> Bid: </h6>
-                  <input type="number" min="${token.highestBid + 1}" name="dapp-wei" value="${token.highestBid + 1}" ${token.auctionEnded ? 'disabled' : ''}>
+                <h6 align = "left"> Bid: </h6>
+                  ${isAuctionLive ? bidInput : !isAuctionStart ? 'Auction not started yet, thank you for your patience!' : 'Auction has ended, thank you for your participation!'}
                   ${token.auctionEnded ? owner : bid}
                   ${token.pendingReturn > 0 ? withdraw : ''}
                   ${this.isAdmin && !token.auctionEnded ? endAuction : ''} <br>
                   ${token.pendingReturn > 0 ? pendingWithdraw : ''}
+                <p align = "left"> Current Highest Bid: ${highestBid} wei </p>
+                <p align = "left"> Auction Start Time: ${startTimeStr} </p>
+                ${Number(token.expiryTime) == 9876543210 ? '' : expiryTimeHTML}
                 </div>
               </div>
             </div>`
@@ -158,6 +190,14 @@ const dApp = {
     // hide or show admin functions based on contract ownership
     this.setAdmin();
   },
+  inputTimeToTimestamp: function(raw_date_str, raw_time_str) {
+    let date_list = raw_date_str.split("-");
+    let time_list = raw_time_str.split(":");
+    let final_datetime = new Date(date_list[0], date_list[1] - 1, date_list[2], time_list[0], time_list[1], 0);
+    return final_datetime.getTime() / 1000;
+  },
+  timeStampToString: function(timestamp) {
+  },
   bid: async function(event) {
     const tokenId = $(event.target).attr("token-id");
     const wei = Number($(event.target).prev().val());
@@ -186,6 +226,40 @@ const dApp = {
 
     const pinata_api_key = $("#dapp-pinata-api-key").val();
     const pinata_secret_api_key = $("#dapp-pinata-secret-api-key").val();
+
+    const raw_expiry_date = $("#dapp-expiry-date").val();
+    const raw_expiry_time = $("#dapp-expiry-time").val();
+
+    console.log("raw_expiry_date", raw_expiry_date, typeof(raw_expiry_date));
+    console.log("raw_expiry_time", raw_expiry_time, typeof(raw_expiry_time));
+
+    let expiry_timestamp = 9876543210;
+    try{
+      expiry_timestamp = this.inputTimeToTimestamp(raw_expiry_date, raw_expiry_time);
+      if (isNaN(expiry_timestamp)) {
+        expiry_timestamp = 9876543210;
+      }
+    }
+    catch(err){
+      console.log("Error parsing expiry date and time", err, raw_expiry_date, raw_expiry_time);
+    }
+
+    const raw_start_date = $("#dapp-start-date").val();
+    const raw_start_time = $("#dapp-start-time").val();
+
+    console.log("raw_start_date", raw_start_date, typeof(raw_start_date));
+    console.log("raw_start_time", raw_start_time, typeof(raw_start_time));
+
+    let start_timestamp = Math.floor(Date.now() / 1000);
+    try{
+      start_timestamp = this.inputTimeToTimestamp(raw_start_date, raw_start_time);
+      if (isNaN(start_timestamp)) {
+        start_timestamp = Math.floor(Date.now() / 1000);
+      }
+    }
+    catch(err){
+      console.log("Error parsing start date and time", err, raw_start_date, raw_start_time);
+    }
 
     if (!pinata_api_key || !pinata_secret_api_key || !name || !image) {
       M.toast({ html: "Please fill out then entire form!" });
@@ -237,7 +311,10 @@ const dApp = {
       M.toast({ html: `Success. Reference URI located at ${reference_uri}.` });
       M.toast({ html: "Sending to blockchain..." });
 
-      await this.artContract.methods.registerArt(reference_uri).send({from: this.accounts[0]}).on("receipt", async (receipt) => {
+      console.log("this.accounts[0]",this.accounts[0], typeof(this.accounts[0]));
+      console.log("start_timestamp", start_timestamp, typeof(start_timestamp));
+
+      await this.artContract.methods.registerArt(reference_uri, start_timestamp, expiry_timestamp).send({from: this.accounts[0]}).on("receipt", async (receipt) => {
         M.toast({ html: "Transaction Mined! Refreshing UI..." });
         $("#dapp-register-name").val("");
         $("#dapp-register-image").val("");
@@ -245,6 +322,7 @@ const dApp = {
       });
 
     } catch (e) {
+      console.log("error", e);
       alert("ERROR:", JSON.stringify(e));
     }
   },
